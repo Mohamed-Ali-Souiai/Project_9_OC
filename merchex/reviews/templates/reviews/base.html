@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <link rel="stylesheet" href="{% static 'reviews/styles.css' %}" />
+    </head>
+    <body>
+        <nav>
+            <a href="{% url 'band-list' %}">Groupes</a>
+        </nav>
+        {% block content %}{% endblock %}
+    </body>
+</html>

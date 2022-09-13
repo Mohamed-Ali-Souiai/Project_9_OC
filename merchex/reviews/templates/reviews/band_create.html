@@ -1,0 +1,9 @@
+{% extends 'reviews/base.html' %}
+{% block content %}
+<h1>create groupes</h1>
+<form action="/bands/add/" method="post" > <!-- novalidate -->
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="envoyer">
+</form>
+{% endblock %}

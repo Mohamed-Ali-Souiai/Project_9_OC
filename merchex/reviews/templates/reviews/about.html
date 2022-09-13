@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>about</title>
+    </head>
+    <body>
+        <p>le nembre des elements est {{listing|length}}</p>
+        <ul>
+            {% for item in listing %}
+                <li>{{ item.title|upper }}</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

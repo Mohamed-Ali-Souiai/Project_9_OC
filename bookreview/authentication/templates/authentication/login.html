@@ -1,0 +1,19 @@
+<!--# authentication/templates/authentication/login.html-->
+{% extends 'base.html' %}
+{% block content %}
+    <div class="login">
+
+            <div >
+                <p>{{ message }}</p>
+                <form method="post">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <button type="submit" >Se connecter</button>
+                </form>
+            </div>
+            <div>
+                <p>Pas encore membre ? <a href="{% url 'signup' %}"><button type="submit" >S'inscrire</button></a></p>
+            </div>
+
+    </div>
+{% endblock content %}
