@@ -1,4 +1,6 @@
 # blog/views.py
+from itertools import chain
+
 from django.forms import formset_factory
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
@@ -6,7 +8,11 @@ from django.views.generic import View
 from . import forms, models
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
+from django.db.models import Value, CharField
 from django.db.models import Q
+
+from .utils import get_user_viewable_reviews, get_user_viewable_tickets, get_replied_tickets, get_user_follows
 
 
 class CreateTicket(View, LoginRequiredMixin):
@@ -15,9 +21,7 @@ class CreateTicket(View, LoginRequiredMixin):
 
     def get(self, request):
         ticket_form = self.form_ticket_class()
-        form_photo_class = self.form_photo_class()
-        context = {'ticket_form': ticket_form,
-                   'form_photo_class': form_photo_class}
+        context = {'ticket_form': ticket_form}
         return render(request, self.template_name, context=context)
 
     def post(self, request):
@@ -93,7 +97,7 @@ def view_post(request):
     return render(request, 'blog/view_post.html', {'object_post': object_post})
 
 
-@login_required()
+"""@login_required()
 def flux(request):
     tickets = models.Ticket.objects.all()
     reviews = models.Review.objects.all()
@@ -105,7 +109,7 @@ def flux(request):
         request,
         'blog/flux.html',
         context=context
-    )
+    )"""
 
 
 @login_required()
@@ -210,6 +214,79 @@ class EditReview(View, LoginRequiredMixin):
         return render(request, self.template_name, context=context)
 
 
+@login_required
+def flux(request):
+    """@login_required()
+    def flux(request):
+        tickets = models.Ticket.objects.all()
+        reviews = models.Review.objects.all()
+        context = {
+            'tickets': tickets,
+            'reviews': reviews
+        }
+        return render(
+            request,
+            'blog/flux.html',
+            context=context
+        )"""
+    followed_users = get_user_follows(request.user)
+
+    reviews = get_user_viewable_reviews(request.user)
+    reviews = reviews.annotate(content_type=Value('REVIEW', CharField()))
+
+    tickets = get_user_viewable_tickets(request.user)
+    tickets = tickets.annotate(content_type=Value('TICKET', CharField()))
+
+    posts_list = sorted(chain(reviews, tickets), key=lambda post: post.time_created, reverse=True)
+
+    context = {
+        'posts': posts_list,
+        'title': 'Feed',
+        'followed_users': followed_users
+    }
+
+    return render(request, 'blog/feed.html', context=context)
+
+
+@login_required
+def user_posts(request, pk=None):
+    if pk:
+        user = get_object_or_404(settings.AUTH_USER_MODEL, id=pk)
+    else:
+        user = request.user
+
+    followed_users = get_user_follows(request.user)
+
+    reviews = models.Review.objects.filter(user=user)
+    reviews = reviews.annotate(content_type=Value('REVIEW', CharField()))
+
+    tickets = models.Ticket.objects.filter(user=user)
+    tickets = tickets.annotate(content_type=Value('TICKET', CharField()))
+
+    replied_tickets, replied_reviews = get_replied_tickets(tickets)
+
+    posts_list = sorted(chain(reviews, tickets), key=lambda post: post.time_created, reverse=True)
+
+    if posts_list:
+        paginator = Paginator(posts_list, 5)
+        page = request.GET.get('page')
+        posts = paginator.get_page(page)
+        total_posts = paginator.count
+    else:
+        posts = None
+        total_posts = 0
+
+    context = {
+        'posts': posts,
+        'title': f"{user.username}'s posts ({total_posts})",
+        'r_tickets': replied_tickets,
+        'r_reviews': replied_reviews,
+        'followed_users': followed_users
+    }
+
+    return render(request, 'reviews/feed.html', context)
+
+
 """*********************************************************************************************"""
 
 
@@ -227,3 +304,14 @@ class FollowUsers(View, LoginRequiredMixin):
             form.save()
             return redirect('flux')
         return render(request, self.template_name, context={'form': form})
+"""
+    replied_tickets, replied_reviews = get_replied_tickets(tickets)
+        if posts_list:
+        paginator = Paginator(posts_list, 5)
+        page = request.GET.get('page')
+        posts = paginator.get_page(page)
+    else:
+        posts = None
+        'r_tickets': replied_tickets,
+        'r_reviews': replied_reviews,
+"""

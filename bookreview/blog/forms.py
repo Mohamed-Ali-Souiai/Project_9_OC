@@ -29,7 +29,7 @@ class UserFollowsForm(forms.Form):
     username = forms.CharField(max_length=50)
 
     def save(self):
-        pass  # UserFollows.objects.create
+        uf = blog.models.UserFollows.objects.create(username=request.user)
 
 
 class DeleteTicketForm(forms.Form):

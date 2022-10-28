@@ -14,6 +14,7 @@ urlpatterns = [
     path('logout/', authentication.views.logout_user, name='logout'),
     path('signup/', authentication.views.signup_page, name='signup'),
     path('flux/', blog.views.flux, name='flux'),
+    path('my_posts/', blog.views.user_posts, name='my-posts'),
     path('LITReview/<int:ticket_id>/<int:review_id>/edit_review', blog.views.EditReview.as_view(), name='edit_review'),
     path('LITReview/<int:ticket_id>/edit_ticket', blog.views.EditTicket.as_view(), name='edit_ticket'),
     path('LITReview/post', blog.views.view_post, name='view_post'),
